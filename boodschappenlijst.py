@@ -10,23 +10,18 @@ class DatabaseOperations:
                                         email text NOT NULL UNIQUE,
                                         joining_date datetime,
                                         salary REAL NOT NULL);'''
-        self.q_sqlite_version = "select sqlite_version();"
 
-    def connect_2_database(self):
+    def list_tables(self):
         try:
             conn = sqlite3.connect(self.db_name)
             c = conn.cursor()
             print("Successfully Connected to: " + self.db_name)
-
-            # c.execute(self.q_sqlite_version)
             c.execute("SELECT name FROM sqlite_master WHERE type='table';")
             conn.commit()
             print(c.fetchall())
-
             c.close()
-
         except sqlite3.Error as error:
-            print("Error while creating a sqlite table", error)
+            print("Error while listing tables", error)
         finally:
             if conn:
                 conn.close()
@@ -77,61 +72,27 @@ class DatabaseOperations:
 
 
 
-
-class Database:
-    def __init__(self):
-        self.dbname = 'boodschappenlijst.db'
-
-    # create table: columns is tuple example ('colname1 datatype', 'colname2 datatype')
-    def create_table(self, tablename, columns):
-        try:
-            conn = sqlite3.connect(self.dbname)
-            c = conn.cursor()
-            c.execute("CREATE TABLE {} {}".format(tablename, columns))
-            conn.close()
-        except sqlite3.OperationalError:
-            print('sqlite3 error')
-
-    def drop_table(self, tablename):
-        conn = sqlite3.connect(self.dbname)
-        c = conn.cursor()
-        c.execute("DROP TABLE {}".format(tablename))
-        conn.close()
-
-    def add_record(self, tablename, data):
-        conn = sqlite3.connect(self.dbname)
-        c = conn.cursor()
-        c.execute("INSERT INTO {} VALUES {}".format(tablename, data))
-        conn.commit()
-        c.execute("SELECT * FROM test")
-        print(c.fetchall())
-        conn.close()
-
 # menu, note no clear screen since is is, afaik, not platform independent
 def menu():
     while True:
-        print('Welkom maak je keuze \n1:  een \n2:  twee \n9: verlaten ')
+        print('Welkom maak je keuze\n1:  Database\n2:  Onderhoud producten\n3:  Boodschappenlijst\n9: verlaten ')
         keuze = input()
         if keuze == '1':
             print('een gekozen')
         elif keuze == '2':
             print('2 gekozen')
+        elif keuze == '3':
+            print('3 gekozen')
         elif keuze == '9':
-            print('verlaten')
             sys.exit()
         else:
-            print('ongeldige keuze')
+            print('!!!ongeldige keuze!!!\n')
 
 
 operations = DatabaseOperations()
-menu()
-# operations.connect_2_database()
+# menu()
+operations.list_tables()
 # operations.create_table()
-# operations.connect_2_database()
+operations.list_tables()
 # operations.drop_table()
-# operations.connect_2_database()
-
-# db = Database()
-# db.create_table('test', ('een text', 'twee text'))
-# db.add_record('test', ('afja', 'jhsdakfha'))
-# db.drop_table('test')
+operations.list_tables()

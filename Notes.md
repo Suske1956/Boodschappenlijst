@@ -33,7 +33,12 @@ For the shopping list the operations are:
 ## Class structure
 ### Menu  
 The menu will be as simple as possible. Obviously there will be a main menu with items like maintenance:  
-for instance list and create tables to be decided whether database operations get their own (sub)menu.  
-In case of changing requirements a submenu might be preferable. 
+for instance list and create tables to be decided: whether database operations get their own (sub)menu.  
+Giving each class its own menu makes it possible to confine the classes. We will get the following classes:  
+- Database operations: list tables, reset database
+- Maintenance: add, change and remove shops or items
+- Shopping list: list of items; reset requirements; add and remove requirements; generate shopping list
 ### Database operations
+### Maintenance
+### Shopping list
 
