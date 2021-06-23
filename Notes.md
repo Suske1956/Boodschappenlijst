@@ -38,18 +38,23 @@ For the shopping list the operations are:
 - reset all requirements
 - generate shopping list 
 ## Class structure
-### Menu  
-The menu will be as simple as possible. Obviously there will be a main menu with items 
-like maintenance:  
-for instance list and create tables to be decided: whether database operations get their own (sub)menu.  
-Giving each class its own menu makes it possible to confine operatins within classes.  
-We will get the following classes:  
-- Database operations: list tables, reset database
-- Maintenance: add, change and remove shops or items
-- Shopping list: list of items; reset requirements; add and remove requirements; generate shopping list  
+The menu will be as simple as possible. The main menu is a class which holds the database name. Database
+operations will be grouped in separate classes each class has its own submenu triggering the methods 
+within the class.
 Notes regarding menu's:  
 - I did not find an easy solution for "press any key", so I used "Press ENTER" instead.
-### Database operations
-### Maintenance
-### Shopping list
+### Class: MainMenu
+#### Attributes
+- database name: string
+#### Methods
+- main menu: starts other menus and passes database name to other classes. Also closes the application
+### Class: Database operations
+#### Attributes
+- none
+#### Methods
+- menu: starts other methods, sets database name
+- list tables: give a list of all table names
+- reset database: remove and regenerate all tables in the database. 
+### Class: ProductMaintenance
+### Class: ShoppingList
 
