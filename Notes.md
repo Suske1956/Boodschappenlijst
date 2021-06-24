@@ -56,5 +56,14 @@ Notes regarding menu's:
 - list tables: give a list of all table names
 - reset database: remove and regenerate all tables in the database. 
 ### Class: ProductMaintenance
+#### Attributes
+- none
+#### Methods
+- menu: starts other methods, sets database name
+- List products 
+- Add product to table of products note - this is the first method to be defined. Consider re-usability
+  - get data from user
+  - verify data
+  - add to database
 ### Class: ShoppingList
 

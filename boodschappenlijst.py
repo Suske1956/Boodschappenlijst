@@ -88,16 +88,40 @@ class DatabaseOperations:
 
 class ProductMaintenance:
     def __init__(self):
-        pass
+        self.db_name = None
 
-    def menu(self):
-        pass
+    def menu(self, database):
+        self.db_name = database
+        while True:
+            print('\n    Producten menu, maak je keuze \n1:  Lijst producten \n2:  Producten toevoegen \n9:  Terug')
+            keuze = input()
+            if keuze == '1':
+                print('1 gekozen')
+            elif keuze == '2':
+                # the while loop can be in a method returning True or False
+                while True:
+                    print('New product will be added continue? [Y/n]')
+                    answer = input()
+                    if answer.upper() == 'Y' or answer == '':
+                        print('continue')
+                        self.add_product()
+                        break
+                    elif answer.upper() == 'N':
+                        print('back')
+                        break
+
+            elif keuze == '9':
+                break
+            else:
+                print('Ongeldige keuze')
 
     def list_products(self):
         pass
 
     def add_product(self):
-        pass
+        print('add product')
+
+
 
     def remove_product(self):
         pass
@@ -109,22 +133,28 @@ class MainMenu:
         self.db_name = 'boodschappenlijst.db'
 
     def menu(self):
-        while True:
-            print('\n    Hoofdmenu maak je keuze\n1:  Tabellen\n2:  Onderhoud producten\n3:  '
-                  'Boodschappenlijst\n9: verlaten ')
-            keuze = input()
+        menu_text = '\n    Hoofdmenu maak je keuze\n1:  Tabellen\n2:  Onderhoud producten\n3: ' \
+                    'Boodschappenlijst\n9: verlaten \n'
+        keuze = input(menu_text)
+        while keuze != '9':
+            # print('\n    Hoofdmenu maak je keuze\n1:  Tabellen\n2:  Onderhoud producten\n3:  '
+            #      'Boodschappenlijst\n9: verlaten ')
             if keuze == '1':
-                operations.menu(self.db_name)
+                print('1 gekozen')
+                # operations.menu(self.db_name)
             elif keuze == '2':
                 print('2 gekozen')
+                # maintenance.menu(self.db_name)
             elif keuze == '3':
                 print('3 gekozen')
-            elif keuze == '9':
-                sys.exit()
             else:
                 print('!!!ongeldige keuze!!!\n')
+            keuze = input(menu_text)
+        print('einde')
+        sys.exit()
 
 
 main_menu = MainMenu()
 operations = DatabaseOperations()
+maintenance = ProductMaintenance()
 main_menu.menu()
