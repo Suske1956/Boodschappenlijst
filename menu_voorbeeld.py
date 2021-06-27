@@ -1,3 +1,5 @@
+# Probeersels met de opbouw van een menu, kan later weg
+
 class Scripts:
     def __init__(self):
         pass
