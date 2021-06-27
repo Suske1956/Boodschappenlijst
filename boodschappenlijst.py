@@ -1,5 +1,4 @@
 import sqlite3
-import sys
 
 
 class DatabaseOperations:
@@ -151,7 +150,6 @@ class MainMenu:
                 print('!!!ongeldige keuze!!!\n')
             keuze = input(menu_text)
         print('einde')
-        sys.exit()
 
 
 main_menu = MainMenu()
