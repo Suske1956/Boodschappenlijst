@@ -1,83 +1,65 @@
 # Probeersels met de opbouw van een menu, kan later weg
+import os
+
 
 class Scripts:
     def __init__(self):
         pass
 
-    def prog1(self):
-        print('prog 1 heeft gewerkt')
+    # hier kan ik alle database akties doen. Overweeg verschillende klassen.
+    def prog(self, keuze):
+        if keuze == 1:
+            print('prog 1 heeft gewerkt')
+        elif keuze == 2:
+            print('prog 2 heeft gewerkt')
+
 
     def prog2(self):
         print('prog 2 heeft gewerkt')
 
 
-class Menu(Scripts):
+class Menu:
     def __init__(self):
-        super().__init__()
+        self.test = Scripts()
+        # het menu kan in een dictionary menudata vervat zijn. in de items moet een commando zijn dat het
+        # goede prog aanstuurt. Zie textblok beneden.
         self.menutxt = 'kies 1 of 2, 0 om te stoppen'
         self.maintxt = 'mainmenu choose 1, 2 or 0 to stop'
 
-    def main(self, maintext):
-        print(maintext)
+    def main(self):
+        print(self.maintxt)
         optie = input('geef je keuze')
         while optie != '0':
             if optie == '1':
-                self.prog1()
+                self.test.prog(1)
             elif optie == '2':
-                self.prog2()
+                self.test.prog(2)
             else:
                 print('ongeldige keuze')
-            print(maintext)
+            print(self.maintxt)
             optie = input('geef je keuze')
 
     def sub(self, subtext):
         pass
 
+
 ''''
-class Test(Menu):
-    def __init__(self):
-        super().__init__()
-        self.menutxt = 'kies 1 of 2, 0 om te stoppen'
-        self.maintxt = 'mainmenu choose 1, 2 or 0 to stop'
-
-    def print(self):
-        self.menu_print(self.menutxt)
-
-    def tst(self):
-        self.main(self.maintxt)
-
-    def opr1(self):
-        print('een gekozen')
-
-    def opt2(self):
-        print('twee gekozen')
 
 '''
 
 menu = Menu()
-menu.main('kies 1 of 2')
+menu.main()
+# os.system('clear')  # Dit werkt alleen in een bash terminal
 # test.tst()
-# menu.menu_print('kies 1 of 2, 0 om te stoppen')
-
-
-
 
 
 '''
-def menu():
-    print('kies 1, 2 of 3 - 0 om te stoppen')
+menu met een dictionary is hier beschreven: 
+https://gist.github.com/abishur/2482046
 
-menu()
-optie = input('geef je keuze')
-while optie != '0':
-    if optie == '1':
-        print('1 gekozen')
-    elif optie == '2':
-        print('2 gekozen')
-    elif optie == '3':
-        print('3 gekozen')
-    else:
-        print('verkeerde keuze')
-    menu()
-    optie = input('geef je keuze')
+Dit menu werkt wel, alleen snap ik nog niet helemaal hoe. 
+Het gebruikt in ieder geval curses en os. Curses is om toestaanslagen af te vangen waardoor je door een menu 
+kunt scrollen.  
+Ik heb het getest, en het werkt. Voor deze applikatie is het wat te veel van het goede. 
+Ik kan wel het principe van een menu in een dictionary gebruiken. 
 '''
