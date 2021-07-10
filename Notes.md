@@ -52,7 +52,7 @@ Notes regarding menu's:
 #### Attributes
 - none
 #### Methods
-- menu: starts other methods, sets database name
+- menu: starts other methods, sets database name, returns to main menu
 - list tables: give a list of all table names
 - reset database: remove and regenerate all tables in the database. 
 ### Class: ProductMaintenance
@@ -67,3 +67,10 @@ Notes regarding menu's:
   - add to database
 ### Class: ShoppingList
 
+## Lessons learned
+- It is recommended to add a docstring after the definition of a class containing a description of the class. 
+The docstring can be called using the special attribute double underscore - doc - double underscore
+- An object from a class can be initiated inside another class, or globally
+- Classes can be nested
+- storing a function in a variable: omit () in the command. Now the command can be called by variable(). 
+  Obviously, between brackets all arguments required. 

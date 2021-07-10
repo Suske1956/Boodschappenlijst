@@ -128,8 +128,28 @@ class ProductMaintenance:
 
 # menu, note no "clear screen" since, afaik, this is not platform independent
 class MainMenu:
+    """
+    This class is the main menu. It holds the database name and connections to the classes
+    which perform the actual database operations.
+    """
     def __init__(self):
         self.db_name = 'boodschappenlijst.db'
+
+        menu = 'menu'
+        command = 'command'
+        exit_menu = 'exit'
+
+        self.menu_data = {
+            'title': 'Main menu', 'type': menu, 'subtitle': 'Select an option', 'options': [
+                {'title': 'Database_operations', 'type': menu, 'subtitle': 'Select an option', 'options': [
+                    {'title': 'sub1_optie1', 'type': command, 'command': 'sub1_comm1'},
+                    {'title': 'sub1_optie2', 'type': command, 'command': 'sub1_comm2'},
+                    {'title': 'Back', 'type': exit_menu},
+                ]},
+                {'title': 'First Command', 'type': command, 'command': 'print_first'},
+                {'title': 'Second Command', 'type': command, 'command': 'print_second'},
+                {'title': 'Exit', 'type': exit_menu}
+            ]}
 
     def menu(self):
         menu_text = '\n    Hoofdmenu maak je keuze\n1:  Tabellen\n2:  Onderhoud producten\n3: ' \
@@ -140,7 +160,7 @@ class MainMenu:
             #      'Boodschappenlijst\n9: verlaten ')
             if keuze == '1':
                 print('1 gekozen')
-                # operations.menu(self.db_name)
+                operations.menu(self.db_name)
             elif keuze == '2':
                 print('2 gekozen')
                 # maintenance.menu(self.db_name)
@@ -152,7 +172,9 @@ class MainMenu:
         print('einde')
 
 
+# main program
 main_menu = MainMenu()
+print(main_menu.__doc__)
 operations = DatabaseOperations()
-maintenance = ProductMaintenance()
+# maintenance = ProductMaintenance()
 main_menu.menu()
