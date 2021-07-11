@@ -3,7 +3,17 @@ import sqlite3
 
 class MenuExec:
     """
-    todo: write documentation for this class
+    MenuExec contains static method to execute a simple cli menu.
+    The parameter data is a dictionary containing the data required to build yhe menu.
+    A typical example of a dictionary:
+            {   'title': 'Database Operations\n', 'options': [
+                    {'title': 'Exit', 'function': self.stop},
+                    {'title': 'List Tables,', 'function': self.list_tables},
+                    {'title': 'Renew Tables', 'function': self.reset_database}
+                ]}
+    The title contains the menu title, printed on tot of the menu. The options contain the menu items.
+    Each option consists of a title and a function. To exit the menu, without an error the static method
+    stop() (without content) should be called.
     """
     @ staticmethod
     def menu(data):
@@ -22,53 +32,44 @@ class MenuExec:
                 print('Input Error, integer required')
             else:
                 if y < number:
-                    data['options'][y]['command']()
+                    data['options'][y]['function']()
                 else:
-                    print('wrong')
+                    print('Input Error, out of scope')
                 print(data['title'])
                 count = 0
                 for x in data['options']:
                     print(count, '  ', x['title'])
                     count += 1
 
+    @staticmethod
+    def stop():
+        pass
+
 
 class ShoppingList:
     """
-    ShoppingList is the main class basically it holds the main menu and controls the different database operations
-    Within ShoppingList subclasses DataBaseOperations, ProductMaintenance and ShoppingList exists. Each of them
+    ShoppingList is the main class basically it holds the main menu of the application and the name of the
+    database
+    Within ShoppingList subclasses DataBaseOperations, ProductMaintenance and ShoppingList exist. Each of them
     holds its own submenu and the operations belonging to the group of operations.
-    The last subclass is GeneralFunctions containing functions not having a relation with the database.
-    The menu consists of a dictionary variable containing all menu items and a function object to start the appropriate
-    code.
-    todo: Document use of MenuExec?
+    For documentation regarding the cli menu see MenuExec
     """
-    class GeneralFunctions:
-        """
-        The class GeneralFunctions holds methods required in the main menu. The method stop is a dummy doing nothing.
-        This avoids an error in the main menu.
-        todo: consider to have the function stop in every class containing a menu
-        """
-        def stop(self):
-            pass
 
     class DataBaseOperations:
         """
-        The class DataBaseOperations holds functions
-        todo: add functionality
-
+        The class DataBaseOperations holds functions to list th tables in the database and to renew
+        the database tables, erasing all data.
         """
         def __init__(self, dbname):
             self.db_name = dbname
             self.menu_func = MenuExec
             self.menu_data = {
                 'title': 'Database Operations\n', 'options': [
-                    {'title': 'Exit', 'command': self.stop},
-                    {'title': 'List Tables,', 'command': self.list_tables},
+                    {'title': 'Exit', 'function': self.menu_func.stop},
+                    {'title': 'List Tables,', 'function': self.list_tables},
+                    {'title': 'Renew Tables', 'function': self.reset_database}
                 ]
             }
-
-        def stop(self):
-            pass
 
         def menu_db_opr(self):
             self.menu_func.menu(self.menu_data)
@@ -93,6 +94,51 @@ class ShoppingList:
                 if conn:
                     conn.close()
 
+        def reset_database(self):
+            print('ATTENTION:\n After resetting the database all data will be lost \n'
+                  'Do you want to continue? (yes/No\n')
+            answer = input()
+            if answer.upper() == 'YES':
+                conn = None
+                try:
+                    conn = sqlite3.connect(self.db_name)
+                    c = conn.cursor()
+                    c.execute("DROP TABLE products")
+                    c.execute("DROP TABLE shops")
+                    c.execute("DROP TABLE prod_shop")
+                    conn.commit()
+                    print('Tables successfully removed')
+                except sqlite3.Error as error:
+                    print('Error while removing a table', error)
+                finally:
+                    if conn:
+                        conn.close()
+                try:
+                    conn = sqlite3.connect(self.db_name)
+                    c = conn.cursor()
+                    c.execute('''CREATE TABLE products (
+                                                   prod_name TEXT NOT NULL,
+                                                   prod_unit text NOT NULL,
+                                                   prod_required REAL,
+                                                   shop_id INTEGER);''')
+                    c.execute('''CREATE TABLE shops (
+                                                   shop_name TEXT);''')
+                    c.execute('''CREATE TABLE prod_shop (
+                                                   prod_id INTEGER,
+                                                   shop_id INTEGER,
+                                                   prod_price REAL);''')
+                    conn.commit()
+                    print('Tables successfully created')
+                    c.close()
+                except sqlite3.Error as error:
+                    print("Error while creating a sqlite table", error)
+                finally:
+                    if conn:
+                        conn.close()
+
+            else:
+                print('\nABORTED!!\n')
+
     class ProductMaintenance:
         """
 
@@ -105,6 +151,9 @@ class ShoppingList:
             print('in maintenance')
 
     class ShoppingList:
+        """
+
+        """
         def __init__(self, dbname):
             self.db_name = dbname
             pass
@@ -114,45 +163,19 @@ class ShoppingList:
 
     def __init__(self):
         self.db_name = 'shopping_list.db'
-        self.general = self.GeneralFunctions()
         self.db_operations = self.DataBaseOperations(self.db_name)
         self.prod_maintenance = self.ProductMaintenance(self.db_name)
         self.shopping_list = self.ShoppingList(self.db_name)
         self.menu_func = MenuExec()
         self.menu_data = {
             'title': 'Main Menu\n', 'options': [
-                {'title': 'Exit', 'command': self.general.stop},
-                {'title': 'Database Operations,', 'command': self.db_operations.menu_db_opr},
-                {'title': 'Product maintenance', 'command': self.prod_maintenance.test},
-                {'title': 'Shopping list', 'command': self.shopping_list.test}
+                {'title': 'Exit', 'function': self.menu_func.stop},
+                {'title': 'Database Operations,', 'function': self.db_operations.menu_db_opr},
+                {'title': 'Product maintenance', 'function': self.prod_maintenance.test},
+                {'title': 'Shopping list', 'function': self.shopping_list.test}
             ]
         }
         self.menu_func.menu(self.menu_data)
-
-    def menu_main(self):
-        number = len(self.menu_data['options'])
-        print(self.menu_data['title'])
-        count = 0
-        for x in self.menu_data['options']:
-            print(count, '  ', x['title'])
-            count += 1
-
-        y = None
-        while y != 0:
-            try:
-                y = int(input('Choose an option\n'))
-            except ValueError:
-                print('Input Error, integer required')
-            else:
-                if y < number:
-                    self.menu_data['options'][y]['command']()
-                else:
-                    print('wrong')
-                print(self.menu_data['title'])
-                count = 0
-                for x in self.menu_data['options']:
-                    print(count, '  ', x['title'])
-                    count += 1
 
 
 shopping_list = ShoppingList()
