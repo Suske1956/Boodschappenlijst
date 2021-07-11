@@ -1,6 +1,7 @@
 # Notes regarding shopping list  
 Database = sqlite since goal is "learn to work wit sqlite"  
-interface = cli since developing an interface is not a goal
+interface = cli developing an interface was not a goal in the first place. As I could not
+find anything simple, I created simple menu based on a more sophisticated cli menu using curses. 
 ## Database operations    
 Chosen for:  "try: except: finally:" for errors in sql commands are not  
 easy to find. "except sqlite3.Error as error:" exports the error from  
@@ -43,11 +44,19 @@ operations will be grouped in separate classes each class has its own submenu tr
 within the class.
 Notes regarding menu's:  
 - I did not find an easy solution for "press any key", so I used "Press ENTER" instead.
+### Class MenuExec
+#### Attributes
+- none
+#### Methods
+- menu: shows menu and starts required functions
+- stop: dummy doing nothing to avoid error 
 ### Class: MainMenu
 #### Attributes
-- database name: string
+- database name: string - note: creating objects from the subclasses requires the database name from the 
+  main menu. this is a guarantee for consistency.
+- menu_main: dictionary containing data to execute the menu
 #### Methods
-- main menu: starts other menus and passes database name to other classes. Also closes the application
+- init only: creates objects from MenuExec and subclasses, starts the menu
 ### Class: Database operations
 #### Attributes
 - none
