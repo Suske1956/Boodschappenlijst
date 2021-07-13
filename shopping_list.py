@@ -119,8 +119,7 @@ class ShoppingList:
                     c.execute('''CREATE TABLE products (
                                                    prod_name TEXT NOT NULL,
                                                    prod_unit text NOT NULL,
-                                                   prod_required REAL,
-                                                   shop_id INTEGER);''')
+                                                   prod_required REAL);''')
                     c.execute('''CREATE TABLE shops (
                                                    shop_name TEXT);''')
                     c.execute('''CREATE TABLE prod_shop (
@@ -141,14 +140,82 @@ class ShoppingList:
 
     class ProductMaintenance:
         """
-
+        todo: fill methods with code
+        todo: test
         """
         def __init__(self, dbname):
             self.db_name = dbname
-            pass
+            self.menu_func = MenuExec
+            self.menu_data = {
+                'title': 'Database Operations\n', 'options': [
+                    {'title': 'Exit', 'function': self.menu_func.stop},
+                    {'title': 'List Products,', 'function': self.list_products},
+                    {'title': 'Add Product', 'function': self.add_product},
+                    {'title': 'Delete Product', 'function': self.delete_product}
+                ]
+            }
 
-        def test(self):
-            print('in maintenance')
+        def menu_prod_main(self):
+            self.menu_func.menu(self.menu_data)
+
+        def list_products(self):
+            """
+            Returns a list of products
+            todo: create the right format in order to make an easy choice in further steps.
+            :return:
+            """
+            conn = None
+            select_query = """SELECT rowid, * FROM products"""
+            try:
+                conn = sqlite3.connect(self.db_name)
+                c = conn.cursor()
+                print('connected to database')
+                c.execute(select_query)
+                records = c.fetchall()
+                print("Total rows are:  ", len(records))
+                print("Printing each row")
+                for row in records:
+                    print('row id: ', row[0])
+                    print('product name ', row[1])
+                    print('product unit', row[2])
+                    print('quantity required ', row[3])
+                    print("\n")
+                c.close()
+            except sqlite3.Error as error:
+                print('failed to read data ', error)
+            finally:
+                if conn:
+                    conn.close()
+                    print('sqlite connection closed')
+
+        def add_product(self):
+            """
+            copied from PyNative
+            todo: variable 'add_tuple' to be filled using input
+            :return:
+            """
+            conn = None
+            add_tuple = ('Product', 'Unit', 12)
+            add_with_parameter = """INSERT INTO products
+                (prod_name, prod_unit, prod_required)
+                VALUES (?, ?, ?);"""
+            try:
+                conn = sqlite3.connect(self.db_name)
+                c = conn.cursor()
+                print('connected to database')
+                c.execute(add_with_parameter, add_tuple)
+                conn.commit()
+                print('record inserted successfully')
+                c.close()
+            except sqlite3.Error as error:
+                print('failed to add record', error)
+            finally:
+                if conn:
+                    conn.close()
+                    print('connection closed')
+
+        def delete_product(self):
+            print('in delete product')
 
     class ShoppingList:
         """
@@ -171,7 +238,7 @@ class ShoppingList:
             'title': 'Main Menu\n', 'options': [
                 {'title': 'Exit', 'function': self.menu_func.stop},
                 {'title': 'Database Operations,', 'function': self.db_operations.menu_db_opr},
-                {'title': 'Product maintenance', 'function': self.prod_maintenance.test},
+                {'title': 'Product maintenance', 'function': self.prod_maintenance.menu_prod_main},
                 {'title': 'Shopping list', 'function': self.shopping_list.test}
             ]
         }
