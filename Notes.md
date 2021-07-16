@@ -12,7 +12,6 @@ Table products with fields:
 - product_name - text 
 - product_unit - text (pcs kg, gram)
 - number_required - real (how many items to purchase)
-- shop_id - int
 
 Table shops with fields: 
 - ID - int (use standard rowid sqlite)

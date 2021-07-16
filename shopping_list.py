@@ -53,6 +53,7 @@ class ShoppingList:
     Within ShoppingList subclasses DataBaseOperations, ProductMaintenance and ShoppingList exist. Each of them
     holds its own submenu and the operations belonging to the group of operations.
     For documentation regarding the cli menu see MenuExec
+    todo: consider making constants (with parameters) of the sqlite commands.
     """
 
     class DataBaseOperations:
@@ -64,7 +65,7 @@ class ShoppingList:
             self.db_name = dbname
             self.menu_func = MenuExec
             self.menu_data = {
-                'title': 'Database Operations\n', 'options': [
+                'title': '\n   >>Database Operations', 'options': [
                     {'title': 'Exit', 'function': self.menu_func.stop},
                     {'title': 'List Tables,', 'function': self.list_tables},
                     {'title': 'Renew Tables', 'function': self.reset_database}
@@ -95,9 +96,8 @@ class ShoppingList:
                     conn.close()
 
         def reset_database(self):
-            print('ATTENTION:\n After resetting the database all data will be lost \n'
-                  'Do you want to continue? (yes/No\n')
-            answer = input()
+            answer = input('ATTENTION:\nAfter resetting the database all data will be lost \n'
+                           'Do you want to continue? (yes/No\n')
             if answer.upper() == 'YES':
                 conn = None
                 try:
@@ -147,7 +147,7 @@ class ShoppingList:
             self.db_name = dbname
             self.menu_func = MenuExec
             self.menu_data = {
-                'title': 'Database Operations\n', 'options': [
+                'title': '\n   >>Product maintenance', 'options': [
                     {'title': 'Exit', 'function': self.menu_func.stop},
                     {'title': 'List Products,', 'function': self.list_products},
                     {'title': 'Add Product', 'function': self.add_product},
@@ -161,7 +161,6 @@ class ShoppingList:
         def list_products(self):
             """
             Returns a list of products
-            todo: create the right format in order to make an easy choice in further steps.
             :return:
             """
             conn = None
@@ -169,50 +168,78 @@ class ShoppingList:
             try:
                 conn = sqlite3.connect(self.db_name)
                 c = conn.cursor()
-                print('connected to database')
                 c.execute(select_query)
                 records = c.fetchall()
-                print("Total rows are:  ", len(records))
-                print("Printing each row")
+                spaces = [0, 0, 0]
+                print('\nrow id', ' ' * 10, 'Product Name', ' ' * 30, 'Unit', ' ' * 10, 'Quantity required')
                 for row in records:
-                    print('row id: ', row[0])
-                    print('product name ', row[1])
-                    print('product unit', row[2])
-                    print('quantity required ', row[3])
-                    print("\n")
+                    spaces[0] = 16 - len(str(row[0]))
+                    spaces[1] = 42 - len(row[1])
+                    spaces[2] = 15 - len(row[2])
+                    print(row[0], ' ' * spaces[0], row[1][0:42], ' ' * spaces[1], row[2], ' ' * spaces[2], row[3])
                 c.close()
             except sqlite3.Error as error:
                 print('failed to read data ', error)
             finally:
                 if conn:
                     conn.close()
-                    print('sqlite connection closed')
+                    print()
 
         def add_product(self):
             """
-            copied from PyNative
-            todo: variable 'add_tuple' to be filled using input
+            Add a new product in the database. The product name and unit are given by the user. Next step is
+            verification of the data by the user. Finally the record is inserted into the database.
+            todo: input prod unit based on a list (dictionary, 2D list or from database) to improve flexibility.
             :return:
             """
             conn = None
-            add_tuple = ('Product', 'Unit', 12)
-            add_with_parameter = """INSERT INTO products
-                (prod_name, prod_unit, prod_required)
-                VALUES (?, ?, ?);"""
-            try:
-                conn = sqlite3.connect(self.db_name)
-                c = conn.cursor()
-                print('connected to database')
-                c.execute(add_with_parameter, add_tuple)
-                conn.commit()
-                print('record inserted successfully')
-                c.close()
-            except sqlite3.Error as error:
-                print('failed to add record', error)
-            finally:
-                if conn:
-                    conn.close()
-                    print('connection closed')
+            prod_add = False
+            prod_name = input('Give product name: ')
+            while True:
+                prod_unit = input('give unit: p = pieces, k = kg, g = gram\n  p, k or g?')
+                if prod_unit == 'p' or prod_unit == 'P':
+                    prod_unit = 'pieces'
+                    break
+                elif prod_unit == 'k' or prod_unit == 'K':
+                    prod_unit = 'kg'
+                    break
+                elif prod_unit == 'g' or prod_unit == 'G':
+                    prod_unit = 'gram'
+                    break
+                else:
+                    print('wrong input')
+
+            while True:
+                print('Record to be added: \nProduct name: ', prod_name, '\nProduct unit: ',
+                      prod_unit, '\n y = yes, n = no')
+                x = input()
+                if x == 'y' or x == 'Y':
+                    prod_add = True
+                    break
+                elif x == 'n' or x == 'N':
+                    break
+                else:
+                    print('wrong input')
+
+            if prod_add:
+                add_tuple = (prod_name, prod_unit, 0)
+                add_with_parameter = """INSERT INTO products
+                    (prod_name, prod_unit, prod_required)
+                    VALUES (?, ?, ?);"""
+                try:
+                    conn = sqlite3.connect(self.db_name)
+                    c = conn.cursor()
+                    print('connected to database')
+                    c.execute(add_with_parameter, add_tuple)
+                    conn.commit()
+                    print('record inserted successfully')
+                    c.close()
+                except sqlite3.Error as error:
+                    print('failed to add record', error)
+                finally:
+                    if conn:
+                        conn.close()
+                        print('connection closed')
 
         def delete_product(self):
             print('in delete product')
@@ -235,7 +262,7 @@ class ShoppingList:
         self.shopping_list = self.ShoppingList(self.db_name)
         self.menu_func = MenuExec()
         self.menu_data = {
-            'title': 'Main Menu\n', 'options': [
+            'title': '\n   >>Main Menu', 'options': [
                 {'title': 'Exit', 'function': self.menu_func.stop},
                 {'title': 'Database Operations,', 'function': self.db_operations.menu_db_opr},
                 {'title': 'Product maintenance', 'function': self.prod_maintenance.menu_prod_main},
