@@ -1,4 +1,5 @@
 import sqlite3
+import shopping_list_constants as constants
 
 
 class MenuExec:
@@ -53,7 +54,8 @@ class ShoppingList:
     Within ShoppingList subclasses DataBaseOperations, ProductMaintenance and ShoppingList exist. Each of them
     holds its own submenu and the operations belonging to the group of operations.
     For documentation regarding the cli menu see MenuExec
-    todo: consider making constants (with parameters) of the sqlite commands.
+    todo: Make constants (with parameters) of the sqlite commands in separate module, shopping_list_constants.py.
+    todo: Consider one or a few try - except constructions to perform database operations, in a separate class.
     """
 
     class DataBaseOperations:
@@ -80,7 +82,7 @@ class ShoppingList:
             try:
                 conn = sqlite3.connect(self.db_name)
                 c = conn.cursor()
-                c.execute("SELECT name FROM sqlite_master WHERE type='table';")
+                c.execute(constants.SQL_LIST_TABLES)
                 conn.commit()
                 tables = (c.fetchall())
                 print('\nList of tables:')
@@ -123,7 +125,7 @@ class ShoppingList:
                     c.execute('''CREATE TABLE shops (
                                                    shop_name TEXT);''')
                     c.execute('''CREATE TABLE prod_shop (
-                                                   prod_id INTEGER,
+                             where                      prod_id INTEGER,
                                                    shop_id INTEGER,
                                                    prod_price REAL);''')
                     conn.commit()
@@ -242,7 +244,35 @@ class ShoppingList:
                         print('connection closed')
 
         def delete_product(self):
-            print('in delete product')
+            """
+            todo:
+                verify input delete_id
+
+            :return:
+            """
+            prod_delete = False
+            conn = None
+            # First list of all records
+            self.list_products()
+            # Choose a record
+            delete_id = input('choose product to be deleted')
+            # verify: show record to be deleted, user input yes or no
+            try:
+                delete_id = int(delete_id)
+                conn = sqlite3.connect(self.db_name)
+                c = conn.cursor()
+                c.execute(constants.SQL_DELETE_RECORD_PARAMETER, delete_id)
+            except sqlite3.Error as error:
+                print('failed to delete record', error)
+            except ValueError:
+                print('ID should be an integer')
+            finally:
+                if conn:
+                    conn.close()
+            # delete record
+            if prod_delete:
+                delete_with_parameter = """DELETE FROM products WHERE rowid = ?"""
+            print(delete_id)
 
     class ShoppingList:
         """
