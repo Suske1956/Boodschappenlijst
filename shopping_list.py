@@ -54,8 +54,11 @@ class ShoppingList:
     Within ShoppingList subclasses DataBaseOperations, ProductMaintenance and ShoppingList exist. Each of them
     holds its own submenu and the operations belonging to the group of operations.
     For documentation regarding the cli menu see MenuExec
-    todo: Make constants (with parameters) of the sqlite commands in separate module, shopping_list_constants.py.
     todo: Consider one or a few try - except constructions to perform database operations, in a separate class.
+    todo: Next actions
+        - populate sub class ShoppingList
+        - add table for units in product maintenance
+        - add shops and connect them with products.
     """
 
     class DataBaseOperations:
@@ -82,7 +85,7 @@ class ShoppingList:
             try:
                 conn = sqlite3.connect(self.db_name)
                 c = conn.cursor()
-                c.execute(constants.SQL_LIST_TABLES)
+                c.execute(constants.LIST_TABLES)
                 conn.commit()
                 tables = (c.fetchall())
                 print('\nList of tables:')
@@ -105,9 +108,9 @@ class ShoppingList:
                 try:
                     conn = sqlite3.connect(self.db_name)
                     c = conn.cursor()
-                    c.execute("DROP TABLE products")
-                    c.execute("DROP TABLE shops")
-                    c.execute("DROP TABLE prod_shop")
+                    c.execute(constants.PRODUCTS_DROP_TABLE)
+                    c.execute(constants.SHOPS_DROP_TABLE)
+                    c.execute(constants.PROD_SHOP_DROP_TABLE)
                     conn.commit()
                     print('Tables successfully removed')
                 except sqlite3.Error as error:
@@ -118,18 +121,11 @@ class ShoppingList:
                 try:
                     conn = sqlite3.connect(self.db_name)
                     c = conn.cursor()
-                    c.execute('''CREATE TABLE products (
-                                                   prod_name TEXT NOT NULL,
-                                                   prod_unit text NOT NULL,
-                                                   prod_required REAL);''')
-                    c.execute('''CREATE TABLE shops (
-                                                   shop_name TEXT);''')
-                    c.execute('''CREATE TABLE prod_shop (
-                             where                      prod_id INTEGER,
-                                                   shop_id INTEGER,
-                                                   prod_price REAL);''')
+                    c.execute(constants.PRODUCTS_CREATE_TABLE)
+                    c.execute(constants.SHOPS_CREATE_TABLE)
+                    c.execute(constants.PROD_SHOP_CREATE_TABLE)
                     conn.commit()
-                    print('Tables successfully created')
+                    print('Empty tables successfully created')
                     c.close()
                 except sqlite3.Error as error:
                     print("Error while creating a sqlite table", error)
@@ -142,8 +138,7 @@ class ShoppingList:
 
     class ProductMaintenance:
         """
-        todo: fill methods with code
-        todo: test
+        methods to list, add and delete records from the product table
         """
         def __init__(self, dbname):
             self.db_name = dbname
@@ -166,11 +161,10 @@ class ShoppingList:
             :return:
             """
             conn = None
-            select_query = """SELECT rowid, * FROM products"""
             try:
                 conn = sqlite3.connect(self.db_name)
                 c = conn.cursor()
-                c.execute(select_query)
+                c.execute(constants.PRODUCTS_GET_ALL_RECORDS)
                 records = c.fetchall()
                 spaces = [0, 0, 0]
                 print('\nrow id', ' ' * 10, 'Product Name', ' ' * 30, 'Unit', ' ' * 10, 'Quantity required')
@@ -195,7 +189,6 @@ class ShoppingList:
             :return:
             """
             conn = None
-            prod_add = False
             prod_name = input('Give product name: ')
             while True:
                 prod_unit = input('give unit: p = pieces, k = kg, g = gram\n  p, k or g?')
@@ -211,28 +204,16 @@ class ShoppingList:
                 else:
                     print('wrong input')
 
-            while True:
-                print('Record to be added: \nProduct name: ', prod_name, '\nProduct unit: ',
-                      prod_unit, '\n y = yes, n = no')
-                x = input()
-                if x == 'y' or x == 'Y':
-                    prod_add = True
-                    break
-                elif x == 'n' or x == 'N':
-                    break
-                else:
-                    print('wrong input')
-
-            if prod_add:
+            print('Record to be added: \nProduct name: ', prod_name, '\nProduct unit: ',
+                  prod_unit)
+            x = input('Add this product? (y/n)')
+            if x.upper() == 'Y':
                 add_tuple = (prod_name, prod_unit, 0)
-                add_with_parameter = """INSERT INTO products
-                    (prod_name, prod_unit, prod_required)
-                    VALUES (?, ?, ?);"""
                 try:
                     conn = sqlite3.connect(self.db_name)
                     c = conn.cursor()
                     print('connected to database')
-                    c.execute(add_with_parameter, add_tuple)
+                    c.execute(constants.PRODUCTS_ADD_RECORD, add_tuple)
                     conn.commit()
                     print('record inserted successfully')
                     c.close()
@@ -245,45 +226,57 @@ class ShoppingList:
 
         def delete_product(self):
             """
-            todo:
-                verify input delete_id
-
+            Delete a product from the database products based on rowid
             :return:
             """
-            prod_delete = False
             conn = None
-            # First list of all records
             self.list_products()
-            # Choose a record
             delete_id = input('choose product to be deleted')
-            # verify: show record to be deleted, user input yes or no
             try:
-                delete_id = int(delete_id)
                 conn = sqlite3.connect(self.db_name)
                 c = conn.cursor()
-                c.execute(constants.SQL_DELETE_RECORD_PARAMETER, delete_id)
+                c.execute(constants.PRODUCTS_GET_ONE_RECORD, delete_id)
+                row = c.fetchall()
+                for field in row:
+                    print('number:      ', field[0])
+                    print('description: ', field[1])
+                answer = input('Delete this record? (y/n)\n')
+                if answer.upper() == 'Y':
+                    c.execute(constants.PRODUCTS_DELETE_ONE_RECORD, delete_id)
+                conn.commit()
             except sqlite3.Error as error:
                 print('failed to delete record', error)
-            except ValueError:
-                print('ID should be an integer')
             finally:
                 if conn:
                     conn.close()
-            # delete record
-            if prod_delete:
-                delete_with_parameter = """DELETE FROM products WHERE rowid = ?"""
-            print(delete_id)
 
     class ShoppingList:
         """
-
+        Add or remove products to your shopping list
         """
         def __init__(self, dbname):
             self.db_name = dbname
-            pass
+            self.menu_func = MenuExec
+            self.menu_data = {
+                'title': '\n   >>Product maintenance', 'options': [
+                    {'title': 'Exit', 'function': self.menu_func.stop},
+                    {'title': 'List Products,', 'function': self.change_product},
+                    {'title': 'Add Product', 'function': self.list_products},
+                    {'title': 'Delete Product', 'function': self.empty_product_list}
+                ]
+            }
 
-        def test(self):
-            print('in shopping list')
+        def menu_prod_main(self):
+            self.menu_func.menu(self.menu_data)
+
+        def change_product(self):
+            print('change product')
+
+        def list_products(self):
+            print('list products')
+
+        def empty_product_list(self):
+            print('empty list')
 
     def __init__(self):
         self.db_name = 'shopping_list.db'
@@ -296,7 +289,7 @@ class ShoppingList:
                 {'title': 'Exit', 'function': self.menu_func.stop},
                 {'title': 'Database Operations,', 'function': self.db_operations.menu_db_opr},
                 {'title': 'Product maintenance', 'function': self.prod_maintenance.menu_prod_main},
-                {'title': 'Shopping list', 'function': self.shopping_list.test}
+                {'title': 'Shopping list', 'function': self.shopping_list.menu_prod_main}
             ]
         }
         self.menu_func.menu(self.menu_data)
