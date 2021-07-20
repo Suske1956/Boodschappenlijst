@@ -12,6 +12,7 @@ To be considered string formatting for getting data and maybe inserting or chang
 LIST_TABLES = """SELECT name FROM sqlite_master WHERE type='table';"""
 PRODUCTS_GET_ONE_RECORD = """SELECT rowid, * from products WHERE rowid = ?"""
 PRODUCTS_GET_ALL_RECORDS = """SELECT rowid, * FROM products"""
+PRODUCTS_GET_RECORDS_WITH_QUANTITY = """SELECT rowid, * FROM products WHERE prod_required != 0"""
 PRODUCTS_DELETE_ONE_RECORD = """DELETE FROM products WHERE rowid = ?"""
 PRODUCTS_ADD_RECORD = """INSERT INTO products
                             (prod_name, prod_unit, prod_required)

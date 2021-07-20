@@ -227,17 +227,14 @@ class ShoppingList:
                 try:
                     conn = sqlite3.connect(self.db_name)
                     c = conn.cursor()
-                    print('connected to database')
                     c.execute(constants.PRODUCTS_ADD_RECORD, add_tuple)
                     conn.commit()
-                    print('record inserted successfully')
                     c.close()
                 except sqlite3.Error as error:
                     print('failed to add record', error)
                 finally:
                     if conn:
                         conn.close()
-                        print('connection closed')
 
         def delete_product(self):
             """
@@ -288,48 +285,48 @@ class ShoppingList:
 
         def change_shopping_list(self):
             """
-            todo: complete code
+            Change quantity of a product
             :return:
             """
             conn = None
-            # show list of products
             self.general.list_products(self.db_name)
-            # choose product
             change_id = input('choose product to be deleted, ENTER to abort')
             if change_id != '':
                 try:
                     conn = sqlite3.connect(self.db_name)
                     c = conn.cursor()
-                    # show record
                     c.execute(constants.PRODUCTS_GET_ONE_RECORD, change_id)
                     row = c.fetchall()
                     if len(row) == 1:
                         for field in row:
                             print('Description: ', field[1])
                             print('Quantity:    ', field[3], field[2])
-                    # input quantity
-                    # create data tuple
-                    # change record
+                        quantity = float(input('Give the new quantity'))  # get quantity
+                        data = (quantity, change_id)  # create data tuple
+                        c.execute(constants.PRODUCT_CHANGE_QUANTITY, data)  # change record
                     conn.commit()
-                    """
-                    van voorbeeld: 
-                    sql_update_query = constants.PRODUCT_CHANGE_QUANTITY
-                    data = (salary, id)
-                    cursor.execute(sql_update_query, data)
-                    sqliteConnection.commit()
-                    print("Record Updated successfully")
-                    cursor.close()
-                    """
-                    print('change')
                     c.close()
                 except sqlite3.Error as error:
                     print('failed to change list, ', error)
+                except ValueError:
+                    print('value error')
                 finally:
                     if conn:
                         conn.close()
 
         def show_shopping_list(self):
-            print('list products')
+            conn = None
+            try:
+                conn = sqlite3.connect(self.db_name)
+                c = conn.cursor()
+                c.execute(constants.PRODUCTS_GET_RECORDS_WITH_QUANTITY)
+                row = c.fetchall()
+                print(row)
+            except sqlite3.Error as error:
+                print('failed to show list', error)
+            finally:
+                if conn:
+                    conn.close()
 
         def empty_shopping_list(self):
             print('empty list')
