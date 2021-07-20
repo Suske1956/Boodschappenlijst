@@ -2,22 +2,29 @@ import sqlite3
 import shopping_list_constants as constants
 
 
-class MenuExec:
+class GeneralFunctions:
     """
-    MenuExec contains static method to execute a simple cli menu.
-    The parameter data is a dictionary containing the data required to build yhe menu.
-    A typical example of a dictionary:
+    GeneralMethods contains static functions:
+
+    To exit the menu, without an error the static method stop() (without content) should be called.
+    A function to list te products
+    """
+
+    @ staticmethod
+    def menu(data):
+        """
+        Execute a simple cli menu. The parameter data is a dictionary containing the data required to build the menu.
+        A typical example of such a dictionary:
             {   'title': 'Database Operations\n', 'options': [
                     {'title': 'Exit', 'function': self.stop},
                     {'title': 'List Tables,', 'function': self.list_tables},
                     {'title': 'Renew Tables', 'function': self.reset_database}
                 ]}
-    The title contains the menu title, printed on tot of the menu. The options contain the menu items.
-    Each option consists of a title and a function. To exit the menu, without an error the static method
-    stop() (without content) should be called.
-    """
-    @ staticmethod
-    def menu(data):
+        The title contains the menu title, printed at the top of the menu. The options contain the menu items.
+        Each option consists of a title and a function.
+        :param data: data type dictionary
+        :return: nothing
+        """
         number = len(data['options'])
         print(data['title'])
         count = 0
@@ -44,7 +51,38 @@ class MenuExec:
 
     @staticmethod
     def stop():
+        """
+        Empty function to stop the menu and return to the higher level.
+        :return:
+        """
         pass
+
+    @staticmethod
+    def list_products(db_name):
+        """
+        Returns a list of products
+        :return:
+        """
+        conn = None
+        try:
+            conn = sqlite3.connect(db_name)
+            c = conn.cursor()
+            c.execute(constants.PRODUCTS_GET_ALL_RECORDS)
+            records = c.fetchall()
+            spaces = [0, 0, 0]
+            print('\nrow id', ' ' * 10, 'Product Name', ' ' * 30, 'Unit', ' ' * 10, 'Quantity required')
+            for row in records:
+                spaces[0] = 16 - len(str(row[0]))
+                spaces[1] = 42 - len(row[1])
+                spaces[2] = 14 - len(row[2])
+                print(row[0], ' ' * spaces[0], row[1][0:42], ' ' * spaces[1], row[2], ' ' * spaces[2], row[3])
+            c.close()
+        except sqlite3.Error as error:
+            print('failed to read data ', error)
+        finally:
+            if conn:
+                conn.close()
+                print()
 
 
 class ShoppingList:
@@ -54,7 +92,7 @@ class ShoppingList:
     Within ShoppingList subclasses DataBaseOperations, ProductMaintenance and ShoppingList exist. Each of them
     holds its own submenu and the operations belonging to the group of operations.
     For documentation regarding the cli menu see MenuExec
-    todo: Consider one or a few try - except constructions to perform database operations, in a separate class.
+    todo: Consider one or a few try - except constructions to perform database operations, in class GeneralFunctions.
     todo: Next actions
         - populate sub class ShoppingList
         - add table for units in product maintenance
@@ -63,22 +101,22 @@ class ShoppingList:
 
     class DataBaseOperations:
         """
-        The class DataBaseOperations holds functions to list th tables in the database and to renew
-        the database tables, erasing all data.
+        The class DataBaseOperations holds a method to list the tables in the database and one to renew
+        the database tables, deleting all data.
         """
         def __init__(self, dbname):
             self.db_name = dbname
-            self.menu_func = MenuExec
+            self.general = GeneralFunctions
             self.menu_data = {
                 'title': '\n   >>Database Operations', 'options': [
-                    {'title': 'Exit', 'function': self.menu_func.stop},
+                    {'title': 'Exit', 'function': self.general.stop},
                     {'title': 'List Tables,', 'function': self.list_tables},
                     {'title': 'Renew Tables', 'function': self.reset_database}
                 ]
             }
 
         def menu_db_opr(self):
-            self.menu_func.menu(self.menu_data)
+            self.general.menu(self.menu_data)
 
         def list_tables(self):
             conn = None
@@ -142,10 +180,10 @@ class ShoppingList:
         """
         def __init__(self, dbname):
             self.db_name = dbname
-            self.menu_func = MenuExec
+            self.general = GeneralFunctions
             self.menu_data = {
                 'title': '\n   >>Product maintenance', 'options': [
-                    {'title': 'Exit', 'function': self.menu_func.stop},
+                    {'title': 'Exit', 'function': self.general.stop},
                     {'title': 'List Products,', 'function': self.list_products},
                     {'title': 'Add Product', 'function': self.add_product},
                     {'title': 'Delete Product', 'function': self.delete_product}
@@ -153,33 +191,10 @@ class ShoppingList:
             }
 
         def menu_prod_main(self):
-            self.menu_func.menu(self.menu_data)
+            self.general.menu(self.menu_data)
 
         def list_products(self):
-            """
-            Returns a list of products
-            :return:
-            """
-            conn = None
-            try:
-                conn = sqlite3.connect(self.db_name)
-                c = conn.cursor()
-                c.execute(constants.PRODUCTS_GET_ALL_RECORDS)
-                records = c.fetchall()
-                spaces = [0, 0, 0]
-                print('\nrow id', ' ' * 10, 'Product Name', ' ' * 30, 'Unit', ' ' * 10, 'Quantity required')
-                for row in records:
-                    spaces[0] = 16 - len(str(row[0]))
-                    spaces[1] = 42 - len(row[1])
-                    spaces[2] = 15 - len(row[2])
-                    print(row[0], ' ' * spaces[0], row[1][0:42], ' ' * spaces[1], row[2], ' ' * spaces[2], row[3])
-                c.close()
-            except sqlite3.Error as error:
-                print('failed to read data ', error)
-            finally:
-                if conn:
-                    conn.close()
-                    print()
+            self.general.list_products(self.db_name)
 
         def add_product(self):
             """
@@ -231,24 +246,26 @@ class ShoppingList:
             """
             conn = None
             self.list_products()
-            delete_id = input('choose product to be deleted')
-            try:
-                conn = sqlite3.connect(self.db_name)
-                c = conn.cursor()
-                c.execute(constants.PRODUCTS_GET_ONE_RECORD, delete_id)
-                row = c.fetchall()
-                for field in row:
-                    print('number:      ', field[0])
-                    print('description: ', field[1])
-                answer = input('Delete this record? (y/n)\n')
-                if answer.upper() == 'Y':
-                    c.execute(constants.PRODUCTS_DELETE_ONE_RECORD, delete_id)
-                conn.commit()
-            except sqlite3.Error as error:
-                print('failed to delete record', error)
-            finally:
-                if conn:
-                    conn.close()
+            delete_id = input('choose product to be deleted, ENTER to abort')
+            if delete_id != '':
+                try:
+                    conn = sqlite3.connect(self.db_name)
+                    c = conn.cursor()
+                    c.execute(constants.PRODUCTS_GET_ONE_RECORD, delete_id)
+                    row = c.fetchall()
+                    if (len(row)) == 1:
+                        for field in row:
+                            print('number:      ', field[0])
+                            print('description: ', field[1])
+                        answer = input('Delete this record? (y/n)\n')
+                        if answer.upper() == 'Y':
+                            c.execute(constants.PRODUCTS_DELETE_ONE_RECORD, delete_id)
+                        conn.commit()
+                except sqlite3.Error as error:
+                    print('failed to delete record', error)
+                finally:
+                    if conn:
+                        conn.close()
 
     class ShoppingList:
         """
@@ -256,26 +273,65 @@ class ShoppingList:
         """
         def __init__(self, dbname):
             self.db_name = dbname
-            self.menu_func = MenuExec
+            self.general = GeneralFunctions
             self.menu_data = {
-                'title': '\n   >>Product maintenance', 'options': [
-                    {'title': 'Exit', 'function': self.menu_func.stop},
-                    {'title': 'List Products,', 'function': self.change_product},
-                    {'title': 'Add Product', 'function': self.list_products},
-                    {'title': 'Delete Product', 'function': self.empty_product_list}
+                'title': '\n   >>Shopping list functions', 'options': [
+                    {'title': 'Exit', 'function': self.general.stop},
+                    {'title': 'Change shopping list', 'function': self.change_shopping_list},
+                    {'title': 'Show shopping list', 'function': self.show_shopping_list},
+                    {'title': 'Empty shopping list', 'function': self.empty_shopping_list}
                 ]
             }
 
         def menu_prod_main(self):
-            self.menu_func.menu(self.menu_data)
+            self.general.menu(self.menu_data)
 
-        def change_product(self):
-            print('change product')
+        def change_shopping_list(self):
+            """
+            todo: complete code
+            :return:
+            """
+            conn = None
+            # show list of products
+            self.general.list_products(self.db_name)
+            # choose product
+            change_id = input('choose product to be deleted, ENTER to abort')
+            if change_id != '':
+                try:
+                    conn = sqlite3.connect(self.db_name)
+                    c = conn.cursor()
+                    # show record
+                    c.execute(constants.PRODUCTS_GET_ONE_RECORD, change_id)
+                    row = c.fetchall()
+                    if len(row) == 1:
+                        for field in row:
+                            print('Description: ', field[1])
+                            print('Quantity:    ', field[3], field[2])
+                    # input quantity
+                    # create data tuple
+                    # change record
+                    conn.commit()
+                    """
+                    van voorbeeld: 
+                    sql_update_query = constants.PRODUCT_CHANGE_QUANTITY
+                    data = (salary, id)
+                    cursor.execute(sql_update_query, data)
+                    sqliteConnection.commit()
+                    print("Record Updated successfully")
+                    cursor.close()
+                    """
+                    print('change')
+                    c.close()
+                except sqlite3.Error as error:
+                    print('failed to change list, ', error)
+                finally:
+                    if conn:
+                        conn.close()
 
-        def list_products(self):
+        def show_shopping_list(self):
             print('list products')
 
-        def empty_product_list(self):
+        def empty_shopping_list(self):
             print('empty list')
 
     def __init__(self):
@@ -283,16 +339,16 @@ class ShoppingList:
         self.db_operations = self.DataBaseOperations(self.db_name)
         self.prod_maintenance = self.ProductMaintenance(self.db_name)
         self.shopping_list = self.ShoppingList(self.db_name)
-        self.menu_func = MenuExec()
+        self.general = GeneralFunctions
         self.menu_data = {
             'title': '\n   >>Main Menu', 'options': [
-                {'title': 'Exit', 'function': self.menu_func.stop},
+                {'title': 'Exit', 'function': self.general.stop},
                 {'title': 'Database Operations,', 'function': self.db_operations.menu_db_opr},
                 {'title': 'Product maintenance', 'function': self.prod_maintenance.menu_prod_main},
-                {'title': 'Shopping list', 'function': self.shopping_list.menu_prod_main}
+                {'title': 'Shopping list functions', 'function': self.shopping_list.menu_prod_main}
             ]
         }
-        self.menu_func.menu(self.menu_data)
+        self.general.menu(self.menu_data)
 
 
 shopping_list = ShoppingList()

@@ -21,6 +21,7 @@ PRODUCTS_CREATE_TABLE = """CREATE TABLE products (
                             prod_name TEXT NOT NULL,
                             prod_unit text NOT NULL,
                             prod_required REAL);"""
+PRODUCT_CHANGE_QUANTITY = """UPDATE products SET prod_required = ? where rowid = ?"""
 SHOPS_DROP_TABLE = """DROP TABLE shops"""
 SHOPS_CREATE_TABLE = """CREATE TABLE shops (
                             shop_name TEXT);"""
