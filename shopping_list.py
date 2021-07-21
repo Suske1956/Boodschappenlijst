@@ -58,24 +58,30 @@ class GeneralFunctions:
         pass
 
     @staticmethod
-    def list_products(db_name):
+    def list_products(db_name, not_zero):
         """
-        Returns a list of products
+        Prints a list of products
+        arguments:
+        db_name = database name [string]
+        not_zero = print all or only those with a value not equal to zero [True or False]
         :return:
         """
         conn = None
         try:
             conn = sqlite3.connect(db_name)
             c = conn.cursor()
-            c.execute(constants.PRODUCTS_GET_ALL_RECORDS)
+            if not_zero:
+                c.execute(constants.PRODUCTS_GET_RECORDS_WITH_QUANTITY)
+            else:
+                c.execute(constants.PRODUCTS_GET_ALL_RECORDS)
             records = c.fetchall()
             spaces = [0, 0, 0]
-            print('\nrow id', ' ' * 10, 'Product Name', ' ' * 30, 'Unit', ' ' * 10, 'Quantity required')
+            print('\nrow id', ' ' * 3, 'Product Name', ' ' * 30, 'Quantity', ' ' * 10, 'Unit')
             for row in records:
-                spaces[0] = 16 - len(str(row[0]))
+                spaces[0] = 9 - len(str(row[0]))
                 spaces[1] = 42 - len(row[1])
-                spaces[2] = 14 - len(row[2])
-                print(row[0], ' ' * spaces[0], row[1][0:42], ' ' * spaces[1], row[2], ' ' * spaces[2], row[3])
+                spaces[2] = 18 - len(str(row[3]))
+                print(row[0], ' ' * spaces[0], row[1][0:42], ' ' * spaces[1], str(row[3]), ' ' * spaces[2], row[2])
             c.close()
         except sqlite3.Error as error:
             print('failed to read data ', error)
@@ -94,7 +100,6 @@ class ShoppingList:
     For documentation regarding the cli menu see MenuExec
     todo: Consider one or a few try - except constructions to perform database operations, in class GeneralFunctions.
     todo: Next actions
-        - populate sub class ShoppingList
         - add table for units in product maintenance
         - add shops and connect them with products.
     """
@@ -194,7 +199,7 @@ class ShoppingList:
             self.general.menu(self.menu_data)
 
         def list_products(self):
-            self.general.list_products(self.db_name)
+            self.general.list_products(self.db_name, False)
 
         def add_product(self):
             """
@@ -289,7 +294,7 @@ class ShoppingList:
             :return:
             """
             conn = None
-            self.general.list_products(self.db_name)
+            self.general.list_products(self.db_name, False)
             change_id = input('choose product to be deleted, ENTER to abort')
             if change_id != '':
                 try:
@@ -315,21 +320,27 @@ class ShoppingList:
                         conn.close()
 
         def show_shopping_list(self):
-            conn = None
-            try:
-                conn = sqlite3.connect(self.db_name)
-                c = conn.cursor()
-                c.execute(constants.PRODUCTS_GET_RECORDS_WITH_QUANTITY)
-                row = c.fetchall()
-                print(row)
-            except sqlite3.Error as error:
-                print('failed to show list', error)
-            finally:
-                if conn:
-                    conn.close()
+            self.general.list_products(self.db_name, True)
 
         def empty_shopping_list(self):
-            print('empty list')
+            """
+            Set all quantities in the shopping list to zero
+            :return:
+            """
+            answer = input('All quantities will be set to zero. Do you want to continue? [y/n]\n')
+            if answer.upper() == 'Y':
+                conn = None
+                try:
+                    conn = sqlite3.connect(self.db_name)
+                    c = conn.cursor()
+                    c.execute(constants.PRODUCTS_SET_ALL_QUANTITIES_TO_ZERO)
+                    conn.commit()
+                    c.close()
+                except sqlite3.Error as error:
+                    print('Could not empty list', error)
+                finally:
+                    if conn:
+                        conn.close()
 
     def __init__(self):
         self.db_name = 'shopping_list.db'
